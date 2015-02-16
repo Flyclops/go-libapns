@@ -1,9 +1,11 @@
 package apns
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"strconv"
 )
 
 //Object describing a push notification payload
@@ -42,15 +44,15 @@ type APSAlertBody struct {
 	Body string `json:"body,omitempty"`
 
 	// Other alert options
-	ActionLocKey string   `json:"action-loc-key,omitempty"`
-	LocKey       string   `json:"loc-key,omitempty"`
-	LocArgs      []string `json:"loc-args,omitempty"`
-	LaunchImage  string   `json:"launch-image,omitempty"`
+	ActionLocKey string
+	LocKey       string
+	LocArgs      []string
+	LaunchImage  string
 
 	// New Title fields and localizations. >= iOS 8.2
-	Title        string   `json:"title,omitempty"`
-	TitleLocKey  string   `json:"title-loc-key,omitempty"`
-	TitleLocArgs []string `json:"title-loc-args,omitempty"`
+	Title        string
+	TitleLocKey  string
+	TitleLocArgs []string
 }
 
 type alertBodyAps struct {
@@ -193,43 +195,153 @@ func (p *Payload) marshalAlertBodyPayload(maxPayloadSize int) ([]byte, error) {
 }
 
 func (s simpleAps) MarshalJSON() ([]byte, error) {
-	toMarshal := make(map[string]interface{})
+	var buffer bytes.Buffer
+	buffer.WriteString("{")
+	buffer.WriteString("\"alert\":\"")
+	buffer.WriteString(s.Alert)
+	buffer.WriteString("\"")
 
-	if s.Alert != "" {
-		toMarshal["alert"] = s.Alert
-	}
 	if s.Badge.IsSet() {
-		toMarshal["badge"] = s.Badge
-	}
-	if s.Sound != "" {
-		toMarshal["sound"] = s.Sound
-	}
-	if s.Category != "" {
-		toMarshal["category"] = s.Category
-	}
-	if s.ContentAvailable != 0 {
-		toMarshal["content-available"] = s.ContentAvailable
+		buffer.WriteString(",")
+		buffer.WriteString("\"badge\":")
+		buffer.WriteString(strconv.Itoa(s.Badge.Number()))
 	}
 
-	return json.Marshal(toMarshal)
+	if s.Category != "" {
+		buffer.WriteString(",")
+		buffer.WriteString("\"category\":\"")
+		buffer.WriteString(s.Category)
+		buffer.WriteString("\"")
+	}
+
+	if s.ContentAvailable != 0 {
+		buffer.WriteString(",")
+		buffer.WriteString("\"content-available\":")
+		buffer.WriteString(strconv.Itoa(s.ContentAvailable))
+	}
+
+	if s.Sound != "" {
+		buffer.WriteString(",")
+		buffer.WriteString("\"sound\":\"")
+		buffer.WriteString(s.Sound)
+		buffer.WriteString("\"")
+	}
+
+	buffer.WriteString("}")
+	return buffer.Bytes(), nil
 }
 
 func (a alertBodyAps) MarshalJSON() ([]byte, error) {
-	toMarshal := make(map[string]interface{})
-	toMarshal["alert"] = a.Alert
+	var buffer bytes.Buffer
+	buffer.WriteString("{")
 
+	b, _ := a.Alert.MarshalJSON()
+	buffer.WriteString("\"alert\":")
+	buffer.Write(b)
+
+	// Done in alphabetical order
 	if a.Badge.IsSet() {
-		toMarshal["badge"] = a.Badge
-	}
-	if a.Sound != "" {
-		toMarshal["sound"] = a.Sound
-	}
-	if a.Category != "" {
-		toMarshal["category"] = a.Category
-	}
-	if a.ContentAvailable != 0 {
-		toMarshal["content-available"] = a.ContentAvailable
+		buffer.WriteString(",")
+		buffer.WriteString("\"badge\":")
+		buffer.WriteString(strconv.Itoa(a.Badge.Number()))
 	}
 
-	return json.Marshal(toMarshal)
+	if a.Category != "" {
+		buffer.WriteString(",")
+		buffer.WriteString("\"category\":\"")
+		buffer.WriteString(a.Category)
+		buffer.WriteString("\"")
+	}
+
+	if a.ContentAvailable != 0 {
+		buffer.WriteString(",")
+		buffer.WriteString("\"content-available\":")
+		buffer.WriteString(strconv.Itoa(a.ContentAvailable))
+	}
+
+	if a.Sound != "" {
+		buffer.WriteString(",")
+		buffer.WriteString("\"sound\":\"")
+		buffer.WriteString(a.Sound)
+		buffer.WriteString("\"")
+	}
+
+	buffer.WriteString("}")
+	return buffer.Bytes(), nil
+}
+
+func (a APSAlertBody) MarshalJSON() ([]byte, error) {
+	var buffer bytes.Buffer
+
+	buffer.WriteString("{")
+	buffer.WriteString("\"body\":\"")
+	buffer.WriteString(a.Body)
+	buffer.WriteString("\"")
+
+	// Done in alphabetical order
+	if a.ActionLocKey != "" {
+		buffer.WriteString(",")
+		buffer.WriteString("\"action-loc-key\":\"")
+		buffer.WriteString(a.ActionLocKey)
+		buffer.WriteString("\"")
+	}
+
+	if a.LaunchImage != "" {
+		buffer.WriteString(",")
+		buffer.WriteString("\"launch-image\":\"")
+		buffer.WriteString(a.LaunchImage)
+		buffer.WriteString("\"")
+	}
+
+	if len(a.LocArgs) > 0 {
+		buffer.WriteString(",")
+		buffer.WriteString("\"loc-args\":[")
+		for i, val := range a.LocArgs {
+			if i > 0 {
+				buffer.WriteString(",")
+			}
+			buffer.WriteString("\"")
+			buffer.WriteString(val)
+			buffer.WriteString("\"")
+		}
+		buffer.WriteString("]")
+	}
+
+	if a.LocKey != "" {
+		buffer.WriteString(",")
+		buffer.WriteString("\"loc-key\":\"")
+		buffer.WriteString(a.LocKey)
+		buffer.WriteString("\"")
+	}
+
+	if a.Title != "" {
+		buffer.WriteString(",")
+		buffer.WriteString("\"title\":\"")
+		buffer.WriteString(a.Title)
+		buffer.WriteString("\"")
+	}
+
+	if len(a.TitleLocArgs) > 0 {
+		buffer.WriteString(",")
+		buffer.WriteString("\"title-loc-args\":[")
+		for i, val := range a.TitleLocArgs {
+			if i > 0 {
+				buffer.WriteString(",")
+			}
+			buffer.WriteString("\"")
+			buffer.WriteString(val)
+			buffer.WriteString("\"")
+		}
+		buffer.WriteString("]")
+	}
+
+	if a.TitleLocKey != "" {
+		buffer.WriteString(",")
+		buffer.WriteString("\"title-loc-key\":\"")
+		buffer.WriteString(a.TitleLocKey)
+		buffer.WriteString("\"")
+	}
+
+	buffer.WriteString("}")
+	return buffer.Bytes(), nil
 }

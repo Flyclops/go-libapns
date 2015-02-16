@@ -229,7 +229,7 @@ func TestAlertBodyMarshal(t *testing.T) {
 		t.Error(fmt.Sprintf("Expected payload to be less than %v but was %v", payloadSize, len(json)))
 	}
 
-	expectedJson := "{\"aps\":{\"alert\":{\"body\":\"Testing this payload\",\"action-loc-key\":\"act-loc-key\",\"loc-key\":\"loc-key\",\"loc-args\":[\"arg1\",\"arg2\"],\"launch-image\":\"launch.png\"},\"badge\":2,\"category\":\"TEST_CATEGORY\",\"content-available\":1,\"sound\":\"test.aiff\"}}"
+	expectedJson := "{\"aps\":{\"alert\":{\"body\":\"Testing this payload\",\"action-loc-key\":\"act-loc-key\",\"launch-image\":\"launch.png\",\"loc-args\":[\"arg1\",\"arg2\"],\"loc-key\":\"loc-key\"},\"badge\":2,\"category\":\"TEST_CATEGORY\",\"content-available\":1,\"sound\":\"test.aiff\"}}"
 	if string(json) != expectedJson {
 		t.Error(fmt.Sprintf("Expected %v but got %v", expectedJson, string(json)))
 	}
@@ -270,8 +270,8 @@ func TestAlertBodyMarshalWithCustomFields(t *testing.T) {
 		t.Error(fmt.Sprintf("Expected payload to be less than %v but was %v", payloadSize, len(json)))
 	}
 
-	expectedJson := "{\"aps\":{\"alert\":{\"body\":\"Testing this payload\",\"action-loc-key\":\"act-loc-key\",\"loc-key\":\"loc-key\"," +
-		"\"launch-image\":\"launch.png\"}," +
+	expectedJson := "{\"aps\":{\"alert\":{\"body\":\"Testing this payload\",\"action-loc-key\":\"act-loc-key\",\"launch-image\":\"launch.png\"," +
+		"\"loc-key\":\"loc-key\"}," +
 		"\"badge\":2,\"content-available\":1,\"sound\":\"test.aiff\"},\"arr\":[\"a\",2]," +
 		"\"num\":55,\"obj\":{\"obja\":\"a\",\"objb\":\"b\"},\"str\":\"string\"}"
 
@@ -345,8 +345,8 @@ func TestAlertBodyMarshalTruncateWithCustomFields(t *testing.T) {
 		t.Error(fmt.Sprintf("Expected payload to be less than %v but was %v", payloadSize, len(json)))
 	}
 
-	expectedJson := "{\"aps\":{\"alert\":{\"body\":\"Testing this ...\",\"action-loc-key\":\"act-loc-key\",\"loc-key\":\"loc-key\"," +
-		"\"loc-args\":[\"arg1\",\"arg2\"],\"launch-image\":\"launch.png\"},\"badge\":2,\"content-available\":1,\"sound\":\"test.aiff\"}," +
+	expectedJson := "{\"aps\":{\"alert\":{\"body\":\"Testing this ...\",\"action-loc-key\":\"act-loc-key\",\"launch-image\":\"launch.png\"," +
+		"\"loc-args\":[\"arg1\",\"arg2\"],\"loc-key\":\"loc-key\"},\"badge\":2,\"content-available\":1,\"sound\":\"test.aiff\"}," +
 		"\"arr\":[\"a\",2],\"arr2\":[\"a\",2],\"num\":55,\"str\":\"string\"}"
 	if string(json) != expectedJson {
 		t.Error(fmt.Sprintf("Expected %v but got %v", expectedJson, string(json)))
